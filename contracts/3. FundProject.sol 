@@ -32,13 +32,45 @@ contract FundProject {
         _;
     }
 
+    modifier hasGoal() {
+        require(
+            goal > 0,
+            "The project doesn't have a goal yet."
+        );
+        _;
+    }
+
+    modifier projectAvailable() {
+        require(
+            isFundable == true,
+            "The project is closed."
+        );
+        _;
+    }
+
     function setGoal(uint g) public onlyOwner {
         goal = g;
     }
 
-    function addFounds() public notIsOwner payable {
+    function viewGoal() public view hasGoal returns(uint256) {
+        return goal;
+    }
+
+    function viewRemaining() public view hasGoal returns(uint256) {
+        return goal - totalFunded;
+    }
+
+    function changeStatusProject() public onlyOwner {
+        isFundable = !isFundable;
+    }
+
+    function addFounds() public hasGoal notIsOwner payable projectAvailable {
         owner.transfer(msg.value);
         totalFunded += msg.value;
+
+        // Close project automatically
+        if (totalFunded >= goal)
+            isFundable = false;
     }
-    
+
 }
