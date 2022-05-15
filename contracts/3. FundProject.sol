@@ -4,17 +4,19 @@ pragma solidity >=0.7.0 <0.9.0;
 
 contract FundProject {
 
+    enum State { Active, Inactive }
+
     struct Funding{
         uint goal;
         uint totalFunded;
-        bool isFundable;
+        State isFundable;
         address payable owner;
     }
 
     Funding public fund;
 
     constructor() {
-        fund = Funding(0, 0, true, payable(msg.sender));            // 1 ETH = 1^18 = 1000000000000000000
+        fund = Funding(0, 0, State.Active, payable(msg.sender));            // 1 ETH = 1^18 = 1000000000000000000
     }
 
     /* ********** EVENTS ********** */
@@ -25,7 +27,7 @@ contract FundProject {
     );
 
     event NotifyStatusChange(
-        bool newStatus
+        State newStatus
     );
 
 
@@ -63,13 +65,13 @@ contract FundProject {
         return fund.goal - fund.totalFunded;
     }
 
-    function changeStatusProject() public onlyOwner {
-        fund.isFundable = !fund.isFundable;
+    function changeStatusProject(State newState) public onlyOwner {
+        fund.isFundable = newState;
         emit NotifyStatusChange(fund.isFundable);
     }
 
     function addFounds() public hasGoal notIsOwner payable {
-        if (fund.isFundable == false)
+        if (fund.isFundable == State.Inactive)
             revert projectAvailable("The project is closed.");
 
         fund.owner.transfer(msg.value);
@@ -78,7 +80,7 @@ contract FundProject {
 
         // Close project automatically
         if (fund.totalFunded >= fund.goal)
-            fund.isFundable = false;
+            fund.isFundable = State.Inactive;
     }
 
 }
