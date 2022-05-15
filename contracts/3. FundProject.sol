@@ -16,37 +16,42 @@ contract FundProject {
         isFundable = true;
     }
 
+    /* ********** EVENTS ********** */
+
+    event NotifyFund(
+        address funder,
+        uint amount
+    );
+
+    event NotifyStatusChange(
+        bool newStatus
+    );
+
+
+    /* ********** MODIFIERS ********** */
+
     modifier onlyOwner {
-        require(
-            msg.sender == owner,
-            "You need to be the owner from this contract to change the goal."
-        );
+        require(msg.sender == owner, "You need to be the owner from this contract to change the goal.");
         _;
     }
 
     modifier notIsOwner {
-        require(
-            msg.sender != owner,
-            "The project owner can not add founds to the project."
-        );
+        require(msg.sender != owner, "The project owner can not add founds to the project.");
         _;
     }
 
     modifier hasGoal() {
-        require(
-            goal > 0,
-            "The project doesn't have a goal yet."
-        );
+        require(goal > 0, "The project doesn't have a goal yet.");
         _;
     }
 
     modifier projectAvailable() {
-        require(
-            isFundable == true,
-            "The project is closed."
-        );
+        require(isFundable == true,"The project is closed.");
         _;
     }
+
+
+    /* ********** FUNCTIONS ********** */
 
     function setGoal(uint g) public onlyOwner {
         goal = g;
@@ -62,11 +67,13 @@ contract FundProject {
 
     function changeStatusProject() public onlyOwner {
         isFundable = !isFundable;
+        emit NotifyStatusChange(isFundable);
     }
 
     function addFounds() public hasGoal notIsOwner payable projectAvailable {
         owner.transfer(msg.value);
         totalFunded += msg.value;
+        emit NotifyFund(msg.sender, msg.value);
 
         // Close project automatically
         if (totalFunded >= goal)
