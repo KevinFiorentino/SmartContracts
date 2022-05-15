@@ -11,7 +11,7 @@ contract FundProject {
         address payable owner;
     }
 
-    Funding fund;
+    Funding public fund;
 
     constructor() {
         fund = Funding(0, 0, true, payable(msg.sender));            // 1 ETH = 1^18 = 1000000000000000000
