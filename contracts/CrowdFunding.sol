@@ -2,7 +2,7 @@
 
 pragma solidity >=0.7.0 <0.9.0;
 
-contract FundProject {
+contract CrowdFunding {
 
     enum State { Active, Inactive }
 
