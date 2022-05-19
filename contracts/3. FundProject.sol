@@ -6,14 +6,21 @@ contract FundProject {
 
     enum State { Active, Inactive }
 
-    struct Funding{
+    struct Funding {
         uint goal;
         uint totalFunded;
         State isFundable;
         address payable owner;
     }
 
+    struct Funder {
+        address funder;
+        uint amount;
+    }
+
     Funding public fund;
+
+    Funder[] public funders;
 
     constructor() {
         fund = Funding(0, 0, State.Active, payable(msg.sender));            // 1 ETH = 1^18 = 1000000000000000000
@@ -51,7 +58,7 @@ contract FundProject {
     error projectAvailable(string msg);
 
 
-    /* ********** FUNCTIONS ********** */
+    /* ********** VIEWS ********** */
 
     function setGoal(uint g) public onlyOwner {
         fund.goal = g;
@@ -65,6 +72,13 @@ contract FundProject {
         return fund.goal - fund.totalFunded;
     }
 
+    function viewFunders() public view onlyOwner returns(Funder[] memory) {
+        return funders;
+    }
+
+
+    /* ********** FUNCTIONS ********** */
+
     function changeStatusProject(State newState) public onlyOwner {
         fund.isFundable = newState;
         emit NotifyStatusChange(fund.isFundable);
@@ -77,6 +91,10 @@ contract FundProject {
         fund.owner.transfer(msg.value);
         fund.totalFunded += msg.value;
         emit NotifyFund(msg.sender, msg.value);
+
+        // Add founder to Array
+        Funder memory f = Funder(msg.sender, msg.value);
+        funders.push(f);
 
         // Close project automatically
         if (fund.totalFunded >= fund.goal)
